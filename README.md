@@ -1,181 +1,133 @@
 # SANGYAN Shield 🛡️
-### AI & Rules-Based Investor Scam & Claim Verifier for Indian Retail Investors
-**Built for the SANGYAN Investor Resilience Hackathon (SEBI x NSDL x IIT BHU)**  
-*Tracks A + E: Scam & Claim Verification, Behavioural Resilience, Multilingual Accessibility*
+
+**A multilingual AI chat assistant that helps Indian retail investors spot investment scams before they pay.**
+
+Built for the **SANGYAN Investor Resilience Hackathon** (Tracks A + E: Digital Fraud & Scam Resilience, Misinformation & Content Literacy).
+
+🔗 **Live demo:** https://YOUR-RENDER-URL.onrender.com
+🎥 **Demo video:** YOUR-VIDEO-LINK
 
 ---
 
-## 📌 Executive Summary
+## The Problem
 
-**Target User:** A first-time retail investor from a Tier-2 or Tier-3 city in India, who may be more comfortable in **Hindi (हिन्दी)** or **Gujarati (ગુજરાતી)** than English, operating a budget Android smartphone on low-bandwidth connectivity. They receive suspicious investment tips, "paisa double" claims, and VIP Telegram invitations on WhatsApp and need an instant, plain-language risk assessment before transferring money.
+India's retail investor base is growing fastest in Tier-2 and Tier-3 cities. First-time investors there receive "guaranteed return" tips, fake VIP Telegram groups, fake SEBI claims and withdrawal-fee traps on WhatsApp every day. Most tools are English-only, and victims usually realise the fraud only when their withdrawal is blocked.
 
-**SANGYAN Shield** provides an instantaneous, transparent, and multi-layered analysis that detects predatory patterns, checks registration claims against SEBI statutory formats, translates regulatory hazards into simple regional language explanations, and guides investors on official verification pathways.
+## Our Solution
 
----
+SANGYAN Shield is a ChatGPT-style assistant. The user pastes a suspicious message, uploads or pastes a screenshot, or speaks, and gets a short, plain-language answer **in the same language they used** (English, Hindi, Gujarati or Hinglish):
 
-## 🔒 Hackathon Guardrail Compliance Matrix
+- a risk level (Low / Medium / High) with a clear note that it is an **indicator, not proof**
+- the key red flags and why they matter
+- safe next steps (report on cybercrime.gov.in or call 1930, file on SEBI SCORES, tell the bank)
+- short, simple answers to general investing questions, with a "Be careful" note on what can go wrong
 
-| Hackathon Hard Rule | Implementation in SANGYAN Shield | Status |
-| :--- | :--- | :--- |
-| **No Stock Tips / Predictions** | Strictly prohibited in both the rule engine and system prompt. Never gives buy/sell/hold ratings or target prices. | ✅ Compliant |
-| **No Monetisation / Accounts** | Zero ads, no fees, no premium tiers, no user authentication or logins. | ✅ Compliant |
-| **Privacy by Design (Stateless)** | **Never stores or logs** user messages, images, or IP addresses. Visible *"Nothing you enter is saved"* notice. Ephemeral rolling memory only for 1-minute rate limit. | ✅ Compliant |
-| **No Live SEBI Verification Claim** | Never claims to verify registration live. Checks structural formatting (`INA`, `INH`, `INZ`) and explicitly instructs the user to cross-check on `sebi.gov.in`. | ✅ Compliant |
-| **Uncertainty Communication** | Strictly avoids binary "scam / not scam". Every report contains confidence level, score (0–100), and the disclaimer: *"This is a risk indicator, not proof."* | ✅ Compliant |
-| **100% Free Stack** | Python 3.11/3.13, FastAPI, OpenRouter free models (`:free` with zero prompt/completion pricing), zero paid dependencies. | ✅ Compliant |
-| **Aesthetic Constraints** | Dark/Light theme with cool navy, teal, cyan, and blue-grey. **Strictly zero purple, violet, or orange**. Risk badges use green, yellow-gold, and red only. | ✅ Compliant |
+## Key Features
 
----
+| Feature | Details |
+|---|---|
+| **Chat interface** | Clean white ChatGPT/Claude-style UI, large readable text, mobile-first |
+| **Replies in your language** | No language menu: the assistant answers in the language and script the user writes or speaks |
+| **Text, image and voice input** | Paste text, upload or paste (Ctrl+V) a screenshot, or use the mic (Chrome/Edge) |
+| **Hybrid detection** | 26+ deterministic multilingual rules plus an LLM for explanation |
+| **Works without AI** | If the AI is unavailable, the rule engine and built-in answers still work |
+| **Short, step-by-step replies** | Typed out gradually with a "thinking" indicator, never a wall of text |
+| **Chat history on your device** | Saved only in your browser's localStorage, with New chat and Clear all history |
+| **Voice conversations** | Spoken questions and replies are saved in the chat, with cancel support |
 
-## 🏗️ System Architecture
+## How It Works
 
 ```mermaid
 flowchart TD
-    User([User: Phone / Web]) -->|Text / Compressed Screenshot / Voice| Frontend[Single-File Lightweight UI <150KB]
-    Frontend -->|POST /api/analyze or /api/analyze-image| FastAPI[FastAPI Stateless Backend]
-    
-    subgraph Privacy & Safety Layer
-        FastAPI --> RateLimiter[In-Memory Rolling Limiter: 10 req/min]
-        RateLimiter --> InputSanitizer[Length & Mime Validator: Max 4000 chars / 4MB]
-    end
-
-    subgraph Core Detection Engine [rules.py - Ground Truth]
-        InputSanitizer --> RulesEngine[26+ Deterministic Multilingual Rules]
-        RulesEngine --> RegexScanner[Pattern Matching: EN / HI / GU / Hinglish]
-        RulesEngine --> SebiFormatParser[SEBI Formats: INA, INH, INZ Check]
-        RulesEngine --> WeightedScorer[Weighted Scoring & Highlighting Engine]
-    end
-
-    subgraph OpenRouter LLM Enhancement [llm.py]
-        FastAPI --> ModelDiscovery[Startup & Hourly Auto-Discovery: Free :free Models]
-        ModelDiscovery --> LLMEnhancer[Structured JSON Extraction with Guardrails]
-        LLMEnhancer --> FallbackController{API Key / Model Available?}
-        FallbackController -->|Yes (Tries up to 4 models)| OpenRouterAPI[OpenRouter Free Tier API]
-        FallbackController -->|No / Timeout / 429| BaseRulesReport[Deterministic Rule-Based Report]
-    end
-
-    WeightedScorer --> ReportSynthesizer[Report Synthesizer]
-    OpenRouterAPI --> ReportSynthesizer
-    BaseRulesReport --> ReportSynthesizer
-    ReportSynthesizer --> FrontendResult[Interactive Risk Gauge + Red Flags + Action Steps]
+    U[User: text, screenshot or voice] --> F[Chat UI]
+    F --> API[FastAPI backend: stateless]
+    API --> RL[In-memory rate limit and input validation]
+    RL --> R[Rule engine: 26+ multilingual patterns, SEBI format check]
+    R --> L{Free LLM available?}
+    L -->|Yes| LLM[Free LLM via OpenRouter: explanation and intent]
+    L -->|No or limit reached| FB[Rules-only and built-in answers]
+    LLM --> V[Reply validator: removes leaked reasoning, markup and wrong-language output]
+    V --> OUT[Short answer in the user's language]
+    FB --> OUT
 ```
 
----
+The **rule engine is the ground truth**: the LLM can add explanation but can never lower a High rule-based risk below Medium.
 
-## 🔍 Core Detection Rules (rules.py)
+## What the Rules Detect
 
-SANGYAN Shield incorporates **26+ regulatory and behavioural detection rules**, covering:
-1. **Guaranteed / Fixed / Daily Returns:** "100% guarantee", "fixed 5% daily", "पक्का मुनाफा", "ખાતરીપૂર્વક નફો".
-2. **"Double Your Money" Schemes:** "2x in 7 days", "पैसा डबल", "25 din me paisa double", "પૈસા ડબલ".
-3. **Astronomical Gains:** "1000% multibagger", "100% labh", "૧૦૦% નફો".
-4. **Urgency & Artificial FOMO:** "limited seats", "last chance", "join in 10 minutes", "आखिरी मौका".
-5. **Insider & Operator Tips:** "sure shot call", "operator buying leak", "ऑपरेटर कॉल", "પાકી બાતમી".
-6. **Pump-and-Dump Language:** "rocket banega", "buy aggressively now", "upper circuit hit".
-7. **Guaranteed Price Targets:** "target 100% achieved", "टारगेट पक्का".
-8. **Unregulated Messaging Groups:** Lures to VIP Telegram or WhatsApp premium channels.
-9. **Shortened & Phishing URLs:** bit.ly, tinyurl, wa.me redirects, `.xyz`, `.top`, `.vip`, lookalike broker domains.
-10. **False SEBI Claims:** "SEBI approved scheme" (SEBI never approves/guarantees any return!).
-11. **SEBI Registration Format Checks:** Extracts `INA` (Adviser), `INH` (Analyst), `INZ` (Broker) formats; warns that valid format does not equal genuine credentials.
-12. **Credential Theft:** Requests for OTP, UPI PIN, or passwords ("enter UPI PIN to receive money").
-13. **Remote-Access Malware:** Requests to install AnyDesk, TeamViewer, QuickSupport, or RustDesk.
-14. **Upfront Registration Fees:** Demands for advance payments to join tips channels.
-15. **Exit Extortion / Withdrawal Fees:** "Pay 20% tax to unlock profits" (pig-butchering trap).
-16. **Deepfake / Celebrity Impersonations:** Fake Mukesh Ambani, Ratan Tata, or Narayana Murthy schemes.
-17. **AI Trading Bot Promises:** "100% automated AI bot guaranteed profit".
-18. **Misleading Demat Inducements:** Cash bonus or lottery gifts prohibited under SEBI norms.
-19. **Guaranteed IPO Allotment:** "100% IPO allotment in HNI quota".
-20. **Crypto / Forex Arbitrage:** Unauthorized forex portal schemes violating FEMA / RBI Alert List.
-21. **Personal UPI Account Routing:** Asking for payments to individual savings handles rather than registered corporate clearing accounts.
-22. **Pyramid / Multi-Level Referral:** "Refer 5 friends to earn daily".
-23. **Malicious APK Downloads:** Direct installation of rogue Android `.apk` files via Telegram.
-24. **Secondary Recovery Scams:** "Recover your lost scam money for a fee".
-25. **Unsolicited Cold Outreach:** "Part time trading job" greetings from unknown foreign numbers.
-26. **Unauthorized Account Handling:** Asking for trading account ID and password to trade on 50-50 profit sharing.
+Guaranteed or daily returns, "double your money" schemes, urgency and FOMO, insider or operator tips, pump-and-dump language, VIP Telegram/WhatsApp group lures, shortened or look-alike links, false "SEBI approved" claims, SEBI registration number format checks (INA / INH / INZ), OTP/UPI PIN requests, remote-access apps (AnyDesk, TeamViewer), upfront and withdrawal fees, personal UPI payment requests, celebrity or deepfake endorsements, AI trading bot promises, guaranteed IPO allotment, fake demat bonuses, referral/pyramid schemes, rogue APK downloads, recovery scams and unauthorised account handling. Patterns cover English, Hindi (Devanagari and romanized) and Gujarati.
 
----
+## Hackathon Guardrail Compliance
 
-## 💻 Local Development Setup
+| Guardrail | How we comply |
+|---|---|
+| No stock tips, buy/sell/hold or price predictions | Forbidden in the rule engine and system prompt. Requests for tips or platforms are politely declined |
+| No promotion of brokers or products | No product or broker is ever named or recommended |
+| No monetisation | No ads, fees, upsells or accounts |
+| Privacy by design | The server stores nothing. User text and images are never logged or written to disk. Chat history lives only in the user's own browser and can be deleted anytime |
+| No unauthorised data collection | No OTP, SMS or financial data is collected, and the assistant warns users never to share them |
+| Honest about uncertainty | Never a "scam / not scam" verdict. Every verdict is a risk indicator, not proof. Registration claims are never verified live; users are sent to sebi.gov.in |
+| Free stack | FastAPI plus free-tier LLM APIs, hosted on a free Render instance |
 
-### Prerequisites
-- Python 3.11 or Python 3.13
-- Git
+## Tech Stack
 
-### 1. Clone & Set Up Virtual Environment
+- **Backend:** Python, FastAPI, Uvicorn, httpx, Pydantic
+- **AI:** OpenRouter free models (`:free`), auto-discovered and used with fallback; optional Groq free tier as an additional provider
+- **Frontend:** single static HTML/CSS/JS page, no framework, client-side screenshot compression
+- **Voice:** browser Web Speech API (recognition and read-aloud)
+- **Hosting:** Render free web service
+- **Tests:** pytest
+
+## Run Locally
+
 ```bash
-git clone <repo-url>
-cd static
+git clone https://github.com/Darshan-Patil-18/sangyan.git
+cd sangyan
 python -m venv venv
-
-# On Windows:
-.\venv\Scripts\activate
-
-# On Linux/macOS:
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-```bash
+# Windows: .\venv\Scripts\activate    |    macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env      # add your free keys (optional)
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 3. Environment Variables (Optional)
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
+Open http://127.0.0.1:8000. If port 8000 is blocked on your machine, use another port such as 8080.
+
+**Environment variables** (all optional; the app still works without them):
+
 ```
-Add your free OpenRouter API key if you want AI enhancements:
-```env
-OPENROUTER_API_KEY=your_openrouter_free_key_here
-# Optional overrides:
+OPENROUTER_API_KEY=
+GROQ_API_KEY=
 TEXT_MODEL=
 VISION_MODEL=
 ```
-> **Note:** The app works **100% fully without any API key**. When no key is set, the deterministic 26+ rule engine runs transparently with full multi-lingual reporting.
 
-### 4. Run Automated Test Suite
-```bash
-python -m pytest tests/test_rules.py -v
-```
+Run the tests with `python -m pytest tests/ -v`.
 
-### 5. Launch Local Server
-```bash
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
-```
-Open your browser at `http://127.0.0.1:8000`.
+## Deploy on Render (free)
 
----
+- **Build command:** `pip install -r requirements.txt`
+- **Start command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- **Health check path:** `/health`
+- Add the API keys as environment variables in the Render dashboard. Never commit `.env`.
 
-## 🚀 Deployment on Render
+Free instances sleep after inactivity, so the first request can take 30 to 60 seconds. Free AI models have request limits, which is why the rule engine and built-in answers keep the app useful when the AI is unavailable.
 
-This repository is configured for one-click deployment on Render's Web Service:
+## Impact and Scalability
 
-- **Environment:** Python
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- **Health Check Path:** `/health`
+- **Impact:** helps first-time investors pause and verify before paying, in the language they actually use, with clear next steps
+- **Scalable:** stateless backend, tiny front end, runs on low-end phones and weak networks
+- **Next steps:** more regional languages (via Bhashini), WhatsApp or IVR access for low-literacy users, community scam-pattern reporting, and a larger multilingual test set
 
-### Environment Variables on Render:
-- `OPENROUTER_API_KEY`: *(Optional)* Your OpenRouter key for free model inference.
-- `TEXT_MODEL`: *(Optional)* E.g. `meta-llama/llama-3.3-70b-instruct:free`
-- `VISION_MODEL`: *(Optional)* E.g. `google/gemini-2.0-flash-exp:free`
+## Official Channels We Point Users To
 
----
+- Verify intermediaries: [sebi.gov.in](https://sebi.gov.in)
+- Report cyber fraud: call **1930** or visit [cybercrime.gov.in](https://cybercrime.gov.in)
+- Investor complaints: [scores.sebi.gov.in](https://scores.sebi.gov.in)
 
-## ⚠️ Render Free Tier Operational Considerations & Mitigations
+## Disclaimer
 
-| Potential Free Tier Risk | Root Cause | SANGYAN Shield Mitigation |
-| :--- | :--- | :--- |
-| **Cold Starts (Spindown)** | Render free instances spin down after 15 minutes of inactivity. First request can take 30–50s. | `/health` responds synchronously with `{"status":"ok"}` without blocking on model discovery. Model discovery runs as an asynchronous background task. |
-| **Memory Ceiling (512 MB RAM)** | Exceeding 512 MB triggers OOM crash. | Page assets are single-file inline (<75 KB total). Python memory footprint is under 60 MB. Image compression happens **client-side in Canvas** (max 1280px, JPEG 0.7) before upload. |
-| **OpenRouter Free Model Rate Limits (429s)** | Free `:free` models on OpenRouter can encounter transient traffic spikes or concurrency limits. | Automatic candidate fallback pipeline (tries up to 4 distinct free models with 20s timeouts). If all free models fail, smoothly falls back to the deterministic rule report with a clear notice. |
-| **Ephemeral Filesystem** | Render wipes local disk on restart. | SANGYAN Shield is **100% stateless by design**. Zero files are written to disk; rate limiting uses an in-memory timestamp queue pruned every 60s. |
+SANGYAN Shield gives risk indicators, **not proof, legal advice or investment advice**. It is an independent hackathon project and is not affiliated with SEBI, NSDL or IIT (BHU).
 
 ---
 
-## 🏛️ Official Indian Investor Grievance Channels
-
-SANGYAN Shield directs investors exclusively to authentic, verified root regulatory domains:
-- **Intermediary Verification:** [sebi.gov.in](https://sebi.gov.in)
-- **National Cyber Crime Helpline:** Call **1930** or visit [cybercrime.gov.in](https://cybercrime.gov.in)
-- **SEBI Complaints Redress System (SCORES):** [scores.sebi.gov.in](https://scores.sebi.gov.in)
-- **RBI Sachet Portal:** [sachet.rbi.org.in](https://sachet.rbi.org.in)
+Built by **Darshan Patil** for the SANGYAN Hackathon.
