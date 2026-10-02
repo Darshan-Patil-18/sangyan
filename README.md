@@ -4,7 +4,7 @@
 
 Built for the **SANGYAN Investor Resilience Hackathon** (Tracks A + E: Digital Fraud & Scam Resilience, Misinformation & Content Literacy).
 
-🔗 **Live demo:** https://YOUR-RENDER-URL.onrender.com
+🔗 **Live demo:** https://sangyan-shield.onrender.com/
 🎥 **Demo video:** YOUR-VIDEO-LINK
 
 ---
