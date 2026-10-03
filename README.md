@@ -5,7 +5,6 @@
 Built for the **SANGYAN Investor Resilience Hackathon** (Tracks A + E: Digital Fraud & Scam Resilience, Misinformation & Content Literacy).
 
 🔗 **Live demo:** https://sangyan-shield.onrender.com/
-🎥 **Demo video:** YOUR-VIDEO-LINK
 
 ---
 
@@ -15,7 +14,7 @@ India's retail investor base is growing fastest in Tier-2 and Tier-3 cities. Fir
 
 ## Our Solution
 
-SANGYAN Shield is a ChatGPT-style assistant. The user pastes a suspicious message, uploads or pastes a screenshot, or speaks, and gets a short, plain-language answer **in the same language they used** (English, Hindi, Gujarati or Hinglish):
+SANGYAN Shield is an assistant. The user pastes a suspicious message, uploads or pastes a screenshot, or speaks, and gets a short, plain-language answer **in the same language they used** (English, Hindi, Gujarati or Hinglish):
 
 - a risk level (Low / Medium / High) with a clear note that it is an **indicator, not proof**
 - the key red flags and why they matter
